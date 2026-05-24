@@ -29,11 +29,11 @@ const Scoring = {
     },
 
     async atsScore(resumeText, job) {
-        return this.callFunction('scoreCandidateATS', { resumeText, job });
+        return this.callFunction('scoring', { action: 'ats', resumeText, job });
     },
 
     async skillsScore(resumeText, job) {
-        return this.callFunction('scoreCandidateSkills', { resumeText, job });
+        return this.callFunction('scoring', { action: 'skills', resumeText, job });
     },
 
     compositeScore(ats, skills, personality, ai) {

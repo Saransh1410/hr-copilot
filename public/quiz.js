@@ -11,10 +11,10 @@ const Quiz = {
             this.renderInactive(0, 0, 'loading');
             let status = null;
             try {
-                const response = await fetch('/api/getCandidateQuizStatus', {
+                const response = await fetch('/api/quiz', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ recruiterUid: Store.uid, candidateId })
+                    body: JSON.stringify({ action: 'getStatus', recruiterUid: Store.uid, candidateId })
                 });
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -218,10 +218,11 @@ const Quiz = {
         }
 
         try {
-            const response = await fetch('/api/submitCandidateQuiz', {
+            const response = await fetch('/api/quiz', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    action: 'submit',
                     recruiterUid: Store.uid,
                     candidateId: this.state.candidateId,
                     scores,

@@ -29,19 +29,19 @@ const GroqAI = {
     },
 
     async scoreCandidate(resumeText, job) {
-        return this.callFunction('scoreCandidateAI', { resumeText, job });
+        return this.callFunction('ai', { action: 'score', resumeText, job });
     },
 
     async analyzeWithPersonality(resumeText, job, personalityScores) {
-        return this.callFunction('analyzeCandidateAI', { resumeText, job, personalityScores });
+        return this.callFunction('ai', { action: 'analyze', resumeText, job, personalityScores });
     },
 
     async generateInterviewQuestions(job, candidate) {
-        return this.callFunction('generateInterviewQuestionsAI', { job, candidate });
+        return this.callFunction('ai', { action: 'generateQuestions', job, candidate });
     },
 
     async chat(history) {
-        const res = await this.callFunction('chatWithCopilotAI', { history });
+        const res = await this.callFunction('ai', { action: 'chat', history });
         return res.reply;
     }
 };

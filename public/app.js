@@ -456,10 +456,11 @@ const App = {
             }
 
             const uid = Store.uid || '';
-            const response = await fetch('/api/submitCandidateApplication', {
+            const response = await fetch('/api/candidate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    action: 'submit',
                     recruiterUid: uid,
                     jobId: jobId,
                     candidateData: { name, email, phone, resumeText: text, fileName: file.name }

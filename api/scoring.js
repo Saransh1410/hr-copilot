@@ -15,18 +15,31 @@ module.exports = async (req, res) => {
     }
 
     const decodedToken = await verifyAuth(req, res);
-    if (!decodedToken) return; // verifyAuth already handled 401 response
+    if (!decodedToken) return;
 
-    const { resumeText, job } = req.body;
+    const { action, resumeText, job } = req.body;
+    if (!action) {
+        return res.status(400).json({ error: 'Missing required field: action.' });
+    }
     if (!resumeText || !job) {
         return res.status(400).json({ error: 'Missing resumeText or job details.' });
     }
 
     try {
-        const result = Scoring.atsScore(resumeText, job);
-        return res.status(200).json(result);
+        switch (action) {
+            case 'ats': {
+                const result = Scoring.atsScore(resumeText, job);
+                return res.status(200).json(result);
+            }
+            case 'skills': {
+                const result = Scoring.skillsScore(resumeText, job);
+                return res.status(200).json(result);
+            }
+            default:
+                return res.status(400).json({ error: `Unknown action: ${action}` });
+        }
     } catch (e) {
-        console.error("Error in scoreCandidateATS endpoint:", e);
+        console.error(`Error in /api/scoring action ${action}:`, e);
         return res.status(500).json({ error: e.message || 'Internal Server Error' });
     }
 };
