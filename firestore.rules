@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default lock down
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Recruiter-specific appData storage rules
+    match /users/{userId}/appData/{key} {
+      // Recruiter owners can read/write everything in their own account scope
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Unauthenticated candidates:
+      // - Can read 'jobs' to see descriptions on the portal
+      // - Can read/write 'quizResults' to take/submit personality quizzes
+      allow read: if key == 'jobs' || key == 'quizResults';
+      allow write: if key == 'quizResults';
+      
+      // Access to settings (secrets), candidates list, onboarding tracker, and interviews
+      // is completely blocked for unauthenticated users. They must submit resumes and quiz
+      // completions via secure backend Cloud Functions.
+    }
+  }
+}

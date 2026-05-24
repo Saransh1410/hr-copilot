@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Autonomous HR Agent — AI-powered recruitment copilot with multi-dimensional candidate scoring, personality assessment, and smart interview scheduling.">
+    <script>
+        // Runtime error and resource load error boundary
+        window.addEventListener('error', function(e) {
+            if (e.target && (e.target.tagName === 'SCRIPT' || e.target.tagName === 'LINK')) {
+                const src = e.target.src || e.target.href;
+                console.error("Resource load error:", src);
+                setTimeout(function() {
+                    if (!document.getElementById('global-err-boundary')) {
+                        const errDiv = document.createElement('div');
+                        errDiv.id = 'global-err-boundary';
+                        errDiv.style.position = 'fixed';
+                        errDiv.style.inset = '0';
+                        errDiv.style.background = '#0A0B1E';
+                        errDiv.style.color = '#FF4D6A';
+                        errDiv.style.padding = '3rem';
+                        errDiv.style.fontFamily = 'system-ui, sans-serif';
+                        errDiv.style.zIndex = '999999';
+                        errDiv.style.display = 'flex';
+                        errDiv.style.flexDirection = 'column';
+                        errDiv.style.justifyContent = 'center';
+                        errDiv.style.alignItems = 'center';
+                        errDiv.style.textAlign = 'center';
+                        errDiv.innerHTML = '<div style="max-width:600px;background:rgba(255,255,255,0.03);padding:2rem;border-radius:16px;border:1px solid rgba(255,77,106,0.2);"><h2 style="margin-bottom:1rem;">⚠️ File Load Failure</h2><p style="color:#8888AA;margin-bottom:1.5rem;">Failed to load script/style: <strong style="color:#FF4D6A">' + (src ? src.split("/").pop() : "unknown file") + '</strong>. This is typically due to browser cache mismatch after a deployment.</p><button onclick="window.location.reload(true)" style="background:#6C63FF;color:#fff;border:none;padding:0.8rem 2rem;font-weight:bold;border-radius:8px;cursor:pointer;box-shadow:0 4px 15px rgba(108,99,255,0.4);">Hard Refresh (Force Reload)</button></div>';
+                        document.documentElement.appendChild(errDiv);
+                    }
+                }, 600);
+                return;
+            }
+            console.error("Global Runtime Error:", e);
+            setTimeout(function() {
+                const isOverlayVisible = document.getElementById('login-overlay') && !document.getElementById('login-overlay').classList.contains('hidden');
+                if (!document.body || document.body.innerHTML.trim() === "" || (!document.getElementById('login-container') || !document.getElementById('login-container').innerHTML && isOverlayVisible)) {
+                    if (!document.getElementById('global-err-boundary')) {
+                        const errDiv = document.createElement('div');
+                        errDiv.id = 'global-err-boundary';
+                        errDiv.style.position = 'fixed';
+                        errDiv.style.inset = '0';
+                        errDiv.style.background = '#0A0B1E';
+                        errDiv.style.color = '#FF4D6A';
+                        errDiv.style.padding = '3rem';
+                        errDiv.style.fontFamily = 'system-ui, sans-serif';
+                        errDiv.style.zIndex = '999999';
+                        errDiv.style.display = 'flex';
+                        errDiv.style.flexDirection = 'column';
+                        errDiv.style.justifyContent = 'center';
+                        errDiv.style.alignItems = 'center';
+                        errDiv.style.textAlign = 'center';
+                        errDiv.innerHTML = '<div style="max-width:600px;background:rgba(255,255,255,0.03);padding:2rem;border-radius:16px;border:1px solid rgba(255,77,106,0.2);"><h2 style="margin-bottom:1rem;">⚠️ Application Error</h2><p style="color:#8888AA;margin-bottom:1.5rem;">' + (e.message || 'An unexpected script execution error occurred.') + '</p><p style="font-size:0.85rem;color:#8888AA;margin-bottom:1.5rem;">Source: ' + (e.filename ? e.filename.split("/").pop() : 'unknown file') + ' (Line: ' + (e.lineno || '?') + ')</p><button onclick="window.location.reload(true)" style="background:#6C63FF;color:#fff;border:none;padding:0.8rem 2rem;font-weight:bold;border-radius:8px;cursor:pointer;box-shadow:0 4px 15px rgba(108,99,255,0.4);">Hard Refresh (Force Reload)</button></div>';
+                        document.documentElement.appendChild(errDiv);
+                    }
+                }
+            }, 600);
+        }, true);
+    </script>
+    <title>HR Copilot — Autonomous Recruitment Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="styles.css?v=1.9.0">
+</head>
+<body>
+    <div id="login-overlay" class="setup-overlay">
+        <div id="login-container"></div>
+    </div>
+
+    <!-- Login AI Chatbot (Fixed to Viewport) -->
+    <div id="login-chatbot-fab" class="login-chatbot-fab hidden" onclick="App.toggleLoginChat()">
+        <div class="chatbot-icon-inner">🤖</div>
+    </div>
+
+    <div id="login-chatbot-panel" class="card login-chatbot-panel hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <div style="font-size:1.8rem">🤖</div>
+                <strong>AI Assistant</strong>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="App.toggleLoginChat()" style="padding:0.2rem 0.5rem">✕</button>
+        </div>
+        <div id="login-chatbot-message" style="font-size:0.9rem; line-height:1.5; color: var(--text); margin-bottom:1.5rem; background:rgba(255,255,255,0.05); padding:1rem; border-radius:var(--radius);">
+            Welcome to HR Copilot! How can I help you today?
+        </div>
+        <div class="flex gap-1" style="flex-wrap: wrap;">
+            <button class="btn btn-sm btn-secondary w-full" style="font-size: 0.8rem; justify-content:flex-start;" onclick="App.loginChat('signin')">🔑 How to Sign In?</button>
+            <button class="btn btn-sm btn-secondary w-full" style="font-size: 0.8rem; justify-content:flex-start;" onclick="App.loginChat('signup')">📝 Create New Account</button>
+            <button class="btn btn-sm btn-secondary w-full" style="font-size: 0.8rem; justify-content:flex-start;" onclick="App.loginChat('reset')">🔄 Reset Password</button>
+            <button class="btn btn-sm btn-secondary w-full" style="font-size: 0.8rem; justify-content:flex-start;" onclick="App.loginChat('about')">❓ About HR Copilot</button>
+            <button class="btn btn-sm btn-secondary w-full" style="font-size: 0.8rem; justify-content:flex-start;" onclick="App.loginChat('guide')">📖 User Guide</button>
+        </div>
+    </div>
+
+    <!-- First-Launch Setup Overlay -->
+    <div id="setup-overlay" class="setup-overlay hidden">
+        <div class="setup-card">
+            <div class="setup-icon">🚀</div>
+            <h1>Welcome to HR Copilot</h1>
+            <p class="setup-subtitle">Let's configure your AI-powered recruitment agent</p>
+            <div class="setup-form">
+                <div class="form-group">
+                    <label for="setup-company-name">Company Name</label>
+                    <input type="text" id="setup-company-name" placeholder="Acme Corp">
+                </div>
+                <button id="setup-save-btn" class="btn btn-primary btn-lg" onclick="App.completeSetup()">
+                    Launch HR Copilot →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="app-container hidden">
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">⚡</div>
+                <span class="brand-text">HR Copilot</span>
+            </div>
+            <ul class="nav-list">
+                <li class="nav-item active" data-page="dashboard" onclick="App.navigate('dashboard')">
+                    <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+                </li>
+                <li class="nav-item" data-page="jobs" onclick="App.navigate('jobs')">
+                    <span class="nav-icon">💼</span><span class="nav-label">Jobs</span>
+                </li>
+                <li class="nav-item" data-page="candidates" onclick="App.navigate('candidates')">
+                    <span class="nav-icon">👥</span><span class="nav-label">Candidates</span>
+                </li>
+
+                <li class="nav-item" data-page="interviews" onclick="App.navigate('interviews')">
+                    <span class="nav-icon">📅</span><span class="nav-label">Interviews</span>
+                </li>
+                <li class="nav-item" data-page="chatbot" onclick="App.navigate('chatbot')">
+                    <span class="nav-icon">💬</span><span class="nav-label">Chatbot</span>
+                </li>
+                <li class="nav-item" data-page="onboarding" onclick="App.navigate('onboarding')">
+                    <span class="nav-icon">🎯</span><span class="nav-label">Onboarding</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <button class="nav-item nav-tour" onclick="App.startTutorial()" style="color:var(--secondary)">
+                    <span class="nav-icon">🎓</span><span class="nav-label">Take Tour</span>
+                </button>
+                <button class="nav-item nav-settings" onclick="App.navigate('settings')">
+                    <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+                </button>
+                <button class="nav-item nav-export" onclick="App.exportData()">
+                    <span class="nav-icon">📤</span><span class="nav-label">Export</span>
+                </button>
+                <button class="nav-item nav-logout" onclick="App.logout()">
+                    <span class="nav-icon">🚪</span><span class="nav-label">Logout</span>
+                </button>
+        </nav>
+
+        <!-- Sidebar Backdrop Overlay for Mobile -->
+        <div id="sidebar-overlay" class="sidebar-overlay hidden" onclick="App.toggleSidebar()"></div>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="top-bar-left">
+                    <button class="menu-toggle" onclick="App.toggleSidebar()">☰</button>
+                    <h2 id="page-title" class="page-title">Dashboard</h2>
+                </div>
+                <div class="top-bar-right">
+                    <span id="company-name-display" class="company-badge">Acme Corp</span>
+                    <div class="ai-status" id="ai-status">
+                        <span class="status-dot online"></span>
+                        <span>AI Online</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Containers -->
+            <div id="page-dashboard" class="page active"></div>
+            <div id="page-jobs" class="page"></div>
+            <div id="page-candidates" class="page"></div>
+            <div id="page-quiz" class="page"></div>
+            <div id="page-interviews" class="page"></div>
+            <div id="page-chatbot" class="page"></div>
+            <div id="page-onboarding" class="page"></div>
+            <div id="page-settings" class="page"></div>
+        </main>
+    </div>
+
+    <!-- Public Portal -->
+    <div id="page-portal" class="page">
+        <div class="quiz-container" style="max-width:600px;margin:0 auto;padding-top:4rem;text-align:center">
+            <div class="animate-pulse" style="font-size:3rem;margin-bottom:1rem">⚡</div>
+            <h2>Initializing Portal...</h2>
+            <p class="text-dim">Connecting to secure recruitment server. Please wait.</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden" onclick="App.closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="modal-close" onclick="App.closeModal()">✕</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="data.js?v=1.9.0"></script>
+    <script src="groq.js?v=1.9.0"></script>
+    <script src="scoring.js?v=1.9.0"></script>
+    <script src="quiz.js?v=1.9.0"></script>
+    <script src="pages.js?v=1.9.0"></script>
+    <script src="app.js?v=1.9.0"></script>
+</body>
+</html>

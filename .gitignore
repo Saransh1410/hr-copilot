@@ -1,0 +1,7 @@
+node_modules
+.env
+.env.local
+.vercel
+.firebase
+credentials_and_links.md
+firebase-service-account.json
